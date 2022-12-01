@@ -1,5 +1,33 @@
 let nb_days = 1
-let functions = [| Day1.day |]
+
+let functions =
+  [|
+    Day1.day;
+    (* Day2.day; *)
+    (* Day3.day; *)
+    (* Day4.day; *)
+    (* Day5.day; *)
+    (* Day6.day; *)
+    (* Day7.day; *)
+    (* Day8.day; *)
+    (* Day9.day; *)
+    (* Day10.day; *)
+    (* Day11.day; *)
+    (* Day12.day; *)
+    (* Day13.day; *)
+    (* Day14.day; *)
+    (* Day15.day; *)
+    (* Day16.day; *)
+    (* Day17.day; *)
+    (* Day18.day; *)
+    (* Day19.day; *)
+    (* Day20.day; *)
+    (* Day21.day; *)
+    (* Day22.day; *)
+    (* Day23.day; *)
+    (* Day24.day; *)
+    (* Day25.day; *)
+  |]
 
 let run n =
   let contents = Utils.get_input n in

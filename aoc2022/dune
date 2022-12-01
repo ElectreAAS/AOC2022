@@ -1,3 +1,5 @@
 (executable
  (name main)
- (libraries domainslib day1 utils mtime mtime.clock.os))
+ (public_name aoc2022)
+ (package aoc2022)
+ (libraries domainslib mtime mtime.clock.os utils day1))
