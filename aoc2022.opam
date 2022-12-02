@@ -10,6 +10,7 @@ bug-reports: "https://github.com/ElectreAAS/AOC2022/issues"
 depends: [
   "dune" {>= "3.6"}
   "domainslib"
+  "eio"
   "mtime"
   "mtime.clock.os"
   "alcotest" {with-test}

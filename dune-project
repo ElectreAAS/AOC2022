@@ -19,6 +19,7 @@
  (description "Advent of Code 2022")
  (depends
   domainslib
+  eio
   mtime
   mtime.clock.os
   (alcotest :with-test)))
