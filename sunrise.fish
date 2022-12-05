@@ -30,7 +30,7 @@ sed -i "s/\(day$yesterday\))/\1 day$today)/" aoc2022/dune
 # test/main.ml
 
 echo "Updating test/main.ml"
-sed -i "s/) ]/); (\"Day $today\", [ Test$today.day ]) ]/" test/main.ml
+sed -i "s/\($yesterday.day ]);\)/\1\n    (\"Day $today\", [ Test$today.day ]);/" test/main.ml
 
 # test/dune
 echo "Updating test/dune"
@@ -91,3 +91,6 @@ if test ! -f $file_name
     set url "https://adventofcode.com/2022/day/$today/input"
     curl "$url" -X GET -H "Cookie: session=$cookie" >$file_name
 end
+
+# Format files just in case
+dune build @fmt --auto-promote
