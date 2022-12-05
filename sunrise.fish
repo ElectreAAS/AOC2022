@@ -94,3 +94,7 @@ end
 
 # Format files just in case
 dune build @fmt --auto-promote
+
+# Commit changes performed in this script
+git add .
+git commit -m "Sunrise script: added template for day $today"
