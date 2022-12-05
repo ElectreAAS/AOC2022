@@ -21,11 +21,9 @@ let parse_input contents =
   let lines =
     String.split_on_char '\n' contents
     |> List.filter (fun line ->
-           not (line = "" || String.starts_with ~prefix:" 1" line))
+           line <> "" && not (String.starts_with ~prefix:" 1" line))
   in
-  let left, right =
-    List.split_on (fun line -> String.starts_with ~prefix:"move" line) lines
-  in
+  let left, right = List.split_on (String.starts_with ~prefix:"move") lines in
   (parse_stacks left, List.map parse_instruction right)
 
 let move arr instrs =
