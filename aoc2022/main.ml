@@ -1,11 +1,11 @@
-let nb_days = 3
+let nb_days = 4
 
 let functions =
   [|
     Day1.day;
     Day2.day;
     Day3.day;
-    (* Day4.day; *)
+    Day4.day;
     (* Day5.day; *)
     (* Day6.day; *)
     (* Day7.day; *)
