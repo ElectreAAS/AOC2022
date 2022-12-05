@@ -2,6 +2,10 @@ module Types = struct
   include Types
 end
 
+module Extensions = struct
+  include Extensions
+end
+
 let ( / ) = Eio.Path.( / )
 
 let slurp path =
