@@ -2,4 +2,14 @@
  (name main)
  (public_name aoc2022)
  (package aoc2022)
- (libraries domainslib eio mtime mtime.clock.os utils day1 day2 day3 day4))
+ (libraries
+  domainslib
+  eio
+  mtime
+  mtime.clock.os
+  utils
+  day1
+  day2
+  day3
+  day4
+  day5))
