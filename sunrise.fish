@@ -49,7 +49,7 @@ end
 # Create placeholder ocaml file
 echo "Creating $dir_name/day$today.ml"
 echo "let day contents =
-  let lines = String.split_on_char '\n' contents in
+  let lines = String.trim contents |> String.split_on_char '\n' in
   List.hd lines
 " >$dir_name/day$today.ml
 

@@ -29,7 +29,7 @@ let parse_combo = function
   | l -> invalid_arg (String.concat " " l)
 
 let day contents =
-  let lines = String.split_on_char '\n' contents |> List.filter (( <> ) "") in
+  let lines = String.trim contents |> String.split_on_char '\n' in
   let points =
     List.fold_left
       (fun sum line ->
