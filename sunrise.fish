@@ -25,10 +25,9 @@ sed -i "s|(\* \(Day$today.day;\) \*)|\1|" aoc2022/main.ml
 
 # aoc2022/dune
 echo "Updating aoc2022/dune"
-sed -i "s/\(day$yesterday\))/\1 day$today)/" aoc2022/dune
+sed -i "s/\(day$yesterday\))/\1\n  day$today)/" aoc2022/dune
 
 # test/main.ml
-
 echo "Updating test/main.ml"
 sed -i "s/\($yesterday.day ]);\)/\1\n    (\"Day $today\", [ Test$today.day ]);/" test/main.ml
 
@@ -78,18 +77,18 @@ if test -z "$cookie"
 end
 
 # Fetch input from the website
-set file_name "$dir_name/input.txt"
-if test ! -f $file_name
-    echo "Creating $file_name"
+set input_file "$dir_name/input.txt"
+if test ! -f $input_file
+    echo "Creating $input_file"
     set url "https://adventofcode.com/2022/day/$today/input"
-    curl "$url" -X GET -H "Cookie: session=$cookie" >$file_name
+    curl "$url" -X GET -H "Cookie: session=$cookie" >$input_file
 end
 
 # Create empty test file
 set test_file "$dir_name/test.txt"
 if test ! -f $test_file
     echo "Creating $test_file"
-    touch $test_file
+    echo "FIXME: Add the actual input for today" >$test_file
 end
 
 # Commit changes performed in this script
