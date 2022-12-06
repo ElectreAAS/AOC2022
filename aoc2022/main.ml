@@ -45,7 +45,17 @@ let dispatch = function
         total_time := !total_time +. run i
       done;
       Printf.printf "\nTotal: %.3fms\n" !total_time
-  | n when n >= 1 && n <= nb_days -> ignore (run n)
+  | n when n >= 1 && n <= nb_days ->
+      ignore (run n);
+      print_newline ()
   | _ -> ()
 
-let () = Sys.argv.(1) |> int_of_string |> dispatch
+let () =
+  let error () =
+    print_endline "\nPlease enter the date of the challenge or 0 for all."
+  in
+  if Array.length Sys.argv < 2 then error ()
+  else
+    match Sys.argv.(1) |> int_of_string_opt with
+    | Some n -> dispatch n
+    | None -> error ()
