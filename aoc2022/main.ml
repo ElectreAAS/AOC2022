@@ -1,4 +1,4 @@
-let nb_days = 5
+let nb_days = 6
 
 let functions =
   [|
@@ -7,7 +7,7 @@ let functions =
     Day3.day;
     Day4.day;
     Day5.day;
-    (* Day6.day; *)
+    Day6.day;
     (* Day7.day; *)
     (* Day8.day; *)
     (* Day9.day; *)

@@ -60,7 +60,7 @@ echo "let day =
   Alcotest.test_case \"Test puzzle input\" `Quick @@ fun () ->
   let contents = Utils.get_test $today in
   let result = day contents in
-  let expected = \"TODO: add actual puzzle input\" in
+  let expected = \"$argv\" in
   Alcotest.(check string) \"puzzle input should be solved!\" expected result;
   ()" >test/test$today.ml
 
@@ -69,13 +69,6 @@ echo "Creating $dir_name/dune"
 echo "(library
  (name day$today)
  (libraries utils))" >$dir_name/dune
-
-# Create empty test file
-set test_file "$dir_name/test.txt"
-if test ! -f $test_file
-    echo "Creating $test_file"
-    touch $test_file
-end
 
 # Get the needed session cookie
 set cookie $AOC2022_SESSION
@@ -92,8 +85,12 @@ if test ! -f $file_name
     curl "$url" -X GET -H "Cookie: session=$cookie" >$file_name
 end
 
-# Format files just in case
-dune build @fmt --auto-promote
+# Create empty test file
+set test_file "$dir_name/test.txt"
+if test ! -f $test_file
+    echo "Creating $test_file"
+    touch $test_file
+end
 
 # Commit changes performed in this script
 git add .
