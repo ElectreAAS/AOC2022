@@ -14,10 +14,9 @@ let day contents =
   let marker_size = 14 in
   let array = Array.init marker_size (String.get line) in
   let rec loop i cursor =
-    let c = line.[i] in
     if array_alldiff array then i
     else (
-      array.(cursor) <- c;
+      array.(cursor) <- line.[i];
       loop (succ i) ((cursor + 1) mod marker_size))
   in
   loop marker_size 0 |> string_of_int
