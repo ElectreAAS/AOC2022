@@ -21,11 +21,11 @@ end
 # aoc2022/main.ml
 echo "Updating aoc2022/main.ml"
 sed -i "s/\(nb_days = \)[0-9]\+/\1$today/" aoc2022/main.ml
-sed -i "s|(\* \(Day$today.day;\) \*)|\1|" aoc2022/main.ml
+sed -i "s/\($yesterday.day;\)/\1\n    Day$today.day;/" aoc2022/main.ml
 
 # aoc2022/dune
 echo "Updating aoc2022/dune"
-sed -i "s/\(day$yesterday\))/\1\n  day$today)/" aoc2022/dune
+sed -i "s/\($yesterday\))/\1\n  day$today)/" aoc2022/dune
 
 # test/main.ml
 echo "Updating test/main.ml"
@@ -33,7 +33,7 @@ sed -i "s/\($yesterday.day ]);\)/\1\n    (\"Day $today\", [ Test$today.day ]);/"
 
 # test/dune
 echo "Updating test/dune"
-sed -i "s/\(day$yesterday\))/\1 day$today)/" test/dune
+sed -i "s/\($yesterday\))/\1 day$today)/" test/dune
 
 
 ## Create the new files
@@ -47,7 +47,7 @@ end
 
 # Create placeholder ocaml file
 echo "Creating $dir_name/day$today.ml"
-echo "let day contents =
+echo "let day _display contents =
   let lines = String.trim contents |> String.split_on_char '\n' in
   List.hd lines
 " >$dir_name/day$today.ml
@@ -58,7 +58,7 @@ echo "let day =
   let open Day$today in
   Alcotest.test_case \"Test puzzle input\" `Quick @@ fun () ->
   let contents = Utils.get_test $today in
-  let result = day contents in
+  let result = day false contents in
   let expected = \"$argv\" in
   Alcotest.(check string) \"puzzle input should be solved!\" expected result;
   ()" >test/test$today.ml

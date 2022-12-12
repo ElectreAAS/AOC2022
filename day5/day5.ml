@@ -37,7 +37,7 @@ let move arr instrs =
   in
   aux instrs
 
-let day contents =
+let day _ contents =
   let stack, instructions = parse_input contents in
   let new_stack = move stack instructions in
   Array.fold_left

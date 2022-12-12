@@ -121,11 +121,11 @@ let find_smallest_big mark node =
   in
   loop max_int node
 
-let day contents =
+let day display contents =
   let cmds = String.split_on_char '$' contents |> List.tl in
   let state = { pwd = ""; tree = Directory (0, "/", [||]) } in
   let final_state = List.fold_left parse_tree state cmds in
-  (* pp final_state.tree; *)
+  if display then pp final_state.tree;
   let needed_free_space = 40_000_000 in
   let taken_space = size final_state.tree in
   let space_to_free = taken_space - needed_free_space in

@@ -24,6 +24,6 @@ let rec process_triple acc = function
       process_triple new_acc rest
   | _ -> acc
 
-let day contents =
+let day _ contents =
   let lines = String.trim contents |> String.split_on_char '\n' in
   process_triple 0 lines |> string_of_int

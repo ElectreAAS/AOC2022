@@ -28,7 +28,7 @@ let parse_combo = function
   | [ x; y ] -> (move_of_string x, outcome_of_string y)
   | l -> invalid_arg (String.concat " " l)
 
-let day contents =
+let day _ contents =
   let lines = String.trim contents |> String.split_on_char '\n' in
   let points =
     List.fold_left
