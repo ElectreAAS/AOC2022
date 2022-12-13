@@ -26,3 +26,16 @@ module List = struct
     in
     (rev before, rev after)
 end
+
+module Array = struct
+  include Array
+
+  (** [findi_opt f a] returns the index of the first element of the array [a]
+      that satisfies the predicate [f], or [None] if there is no such index. *)
+  let findi_opt f a =
+    let len = length a in
+    let rec loop i =
+      if i = len then None else if f a.(i) then Some i else loop (i + 1)
+    in
+    loop 0
+end
