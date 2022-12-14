@@ -1,4 +1,4 @@
-let nb_days = 12
+let nb_days = 13
 
 let functions =
   [|
@@ -14,6 +14,7 @@ let functions =
     Day10.day;
     Day11.day;
     Day12.day;
+    Day13.day;
   |]
 
 let run display n =
