@@ -1,11 +1,6 @@
-type cell = {
-  content : char;
-  shortest_path_cost : int option;
-  heuristic_distance : int;
-}
+type cell = { content : char; shortest_path_cost : int option }
 
-let code { content; _ } =
-  match content with 'S' -> 97 | 'E' -> 122 | c -> Char.code c
+let code c = match c with 'S' -> 0 | 'E' -> 25 | c -> Char.code c - 97
 
 let parse contents =
   let lines = String.trim contents |> String.split_on_char '\n' in
@@ -13,89 +8,27 @@ let parse contents =
   let height = List.length lines in
   let hill =
     Array.init width (fun _ ->
-        Array.make height
-          {
-            content = ' ';
-            shortest_path_cost = None;
-            heuristic_distance = max_int;
-          })
+        Array.make height { content = ' '; shortest_path_cost = None })
   in
   let start = ref None in
-  let finish = ref None in
   List.iteri
     (fun y line ->
       String.iteri
         (fun x c ->
-          let cell =
-            match (c, !finish) with
-            | 'S', Some (fx, fy) ->
-                start := Some (x, y);
-                {
-                  content = c;
-                  shortest_path_cost = Some 0;
-                  heuristic_distance = max 25 (abs (fx - x) + abs (fy - y));
-                }
-            | 'S', None ->
-                start := Some (x, y);
-                {
-                  content = c;
-                  shortest_path_cost = Some 0;
-                  heuristic_distance = 25;
-                }
-            | 'E', _ ->
-                finish := Some (x, y);
-                {
-                  content = c;
-                  shortest_path_cost = None;
-                  heuristic_distance = 0;
-                }
-            | _, Some (fx, fy) ->
-                {
-                  content = c;
-                  shortest_path_cost = None;
-                  heuristic_distance =
-                    max
-                      (Char.code 'z' - Char.code c)
-                      (abs (fx - x) + abs (fy - y));
-                }
-            | _, None ->
-                {
-                  content = c;
-                  shortest_path_cost = None;
-                  heuristic_distance = Char.code 'z' - Char.code c;
-                }
+          let shortest_path_cost =
+            if c = 'E' then (
+              start := Some (x, y);
+              Some 0)
+            else None
           in
-
+          let cell = { content = c; shortest_path_cost } in
           hill.(x).(y) <- cell)
         line)
     lines;
-  let start = Option.get !start in
-  let fx, fy = Option.get !finish in
-  let rec fill_heuristic x y =
-    if x = width then fill_heuristic 0 (y + 1)
-    else
-      let curr = hill.(x).(y) in
-      match curr.content with
-      | 'E' -> (hill, start)
-      | 'S' ->
-          hill.(x).(y) <-
-            { curr with heuristic_distance = max 25 (abs (fx - x) + fy - y) };
-          fill_heuristic (x + 1) y
-      | _ ->
-          hill.(x).(y) <-
-            {
-              curr with
-              heuristic_distance =
-                max curr.heuristic_distance (abs (fx - x) + fy - y);
-            };
-          fill_heuristic (x + 1) y
-  in
-  fill_heuristic 0 0
+  (hill, Option.get !start)
 
 let pp hill =
-  let print_cell { heuristic_distance; _ } =
-    Printf.printf "%2d" heuristic_distance
-  in
+  let print_cell { content; _ } = Printf.printf "%c" content in
   let width = Array.length hill in
   let height = Array.length hill.(0) in
   print_newline ();
@@ -109,7 +42,8 @@ let pp hill =
 let a_star hill start =
   let width = Array.length hill in
   let height = Array.length hill.(0) in
-  let bin_nb = 6 in
+  (* Max difference between letters. In practice this doesn't get above 3. *)
+  let bin_nb = 25 in
   let bins = Array.init bin_nb (fun _ -> Queue.create ()) in
   let cursor = ref 0 in
   Queue.add start bins.(0);
@@ -118,11 +52,11 @@ let a_star hill start =
     List.filter_map
       (fun (nx, ny) ->
         if nx < 0 || ny < 0 || nx = width || ny = height then None
-        else if code hill.(x).(y) - code hill.(nx).(ny) >= -1 then Some (nx, ny)
+        else if code hill.(nx).(ny).content - code hill.(x).(y).content >= -1
+        then Some (nx, ny)
         else None)
       [ (x, y - 1); (x + 1, y); (x, y + 1); (x - 1, y) ]
   in
-
   (* This function assumes we will always have a next node to visit.
      This is guaranteed by the A* algorithm as long as the end node is accessible. *)
   let rec take_next () =
@@ -135,7 +69,7 @@ let a_star hill start =
   let rec loop () =
     let x, y = take_next () in
     let curr = hill.(x).(y) in
-    if curr.heuristic_distance = 0 then
+    if curr.content = 'a' || curr.content = 'S' then
       (* This is the final cell! *)
       Option.get curr.shortest_path_cost
     else (
@@ -149,9 +83,7 @@ let a_star hill start =
               (* Found a better path! *)
               hill.(nx).(ny) <-
                 { neigh with shortest_path_cost = Some proposed_dist };
-              let fscore_diff =
-                neigh.heuristic_distance - curr.heuristic_distance + 1
-              in
+              let fscore_diff = code neigh.content - code curr.content + 1 in
               assert (fscore_diff >= 0 && fscore_diff < bin_nb);
               let target_bin = (!cursor + fscore_diff) mod bin_nb in
               Queue.add (nx, ny) bins.(target_bin))
