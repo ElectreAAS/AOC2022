@@ -17,6 +17,6 @@ let day _ contents =
     if array_alldiff array then i
     else (
       array.(cursor) <- line.[i];
-      loop (succ i) ((cursor + 1) mod marker_size))
+      loop (i + 1) (succ cursor mod marker_size))
   in
   loop marker_size 0 |> string_of_int

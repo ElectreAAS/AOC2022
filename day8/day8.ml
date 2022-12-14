@@ -42,23 +42,23 @@ let scenic_score x y forest =
   let self = forest.(x).(y) in
   let rec up sum n =
     if n < 0 then sum
-    else if forest.(x).(n) < self then up (succ sum) (n - 1)
-    else succ sum
+    else if forest.(x).(n) < self then up (sum + 1) (n - 1)
+    else sum + 1
   in
   let rec down sum n =
     if n >= len then sum
-    else if forest.(x).(n) < self then down (succ sum) (n + 1)
-    else succ sum
+    else if forest.(x).(n) < self then down (sum + 1) (n + 1)
+    else sum + 1
   in
   let rec left sum n =
     if n < 0 then sum
-    else if forest.(n).(y) < self then left (succ sum) (n - 1)
-    else succ sum
+    else if forest.(n).(y) < self then left (sum + 1) (n - 1)
+    else sum + 1
   in
   let rec right sum n =
     if n >= len then sum
-    else if forest.(n).(y) < self then right (succ sum) (n + 1)
-    else succ sum
+    else if forest.(n).(y) < self then right (sum + 1) (n + 1)
+    else sum + 1
   in
   up 0 (y - 1) * down 0 (y + 1) * left 0 (x - 1) * right 0 (x + 1)
 
@@ -70,7 +70,7 @@ let day display contents =
     if x = len - 1 then count
     else
       let this = scenic_score x y forest in
-      let x, y = if y = len - 2 then (succ x, 1) else (x, succ y) in
+      let x, y = if y = len - 2 then (x + 1, 1) else (x, y + 1) in
       loop x y (max count this)
   in
   string_of_int (loop 1 1 0)

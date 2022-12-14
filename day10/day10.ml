@@ -15,7 +15,7 @@ let rec steps state instr =
       | _ -> "░")
     ^ if state.cycle mod 40 = 0 then "\n" else ""
   in
-  let cycle = succ state.cycle in
+  let cycle = state.cycle + 1 in
   match state.hanging with
   | Some n ->
       steps { register = state.register + n; cycle; hanging = None; crt } instr
