@@ -17,14 +17,12 @@ module List = struct
     - the first contains the elements at the start of [l], up to the first element that satisfies pred (not included).
     - the second contains the elements that follow (first satisfier included). *)
   let split_on pred l =
-    let _, before, after =
-      fold_left
-        (fun (seen, before, after) elem ->
-          if seen || pred elem then (true, before, elem :: after)
-          else (false, elem :: before, after))
-        (false, [], []) l
+    let rec aux l before =
+      match l with
+      | [] -> (rev before, [])
+      | x :: xs -> if pred x then (rev before, l) else aux xs (x :: before)
     in
-    (rev before, rev after)
+    aux l []
 end
 
 module Array = struct
