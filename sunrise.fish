@@ -33,7 +33,7 @@ sed -i "s/\($yesterday.day ]);\)/\1\n    (\"Day $today\", [ Test$today.day ]);/"
 
 # test/dune
 echo "Updating test/dune"
-sed -i "s/\($yesterday\))/\1 day$today)/" test/dune
+sed -i "s/\($yesterday\)/\1\n  day$today/" test/dune
 
 
 ## Create the new files
@@ -49,8 +49,7 @@ end
 echo "Creating $dir_name/day$today.ml"
 echo "let day _display contents =
   let lines = String.trim contents |> String.split_on_char '\n' in
-  List.hd lines
-" >$dir_name/day$today.ml
+  List.hd lines" >$dir_name/day$today.ml
 
 # Create test file
 echo "Creating test/test$today.ml"
