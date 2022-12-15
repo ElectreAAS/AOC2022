@@ -39,52 +39,40 @@ let parse_data buff =
   in
   parse_list []
 
+let rec compare_data left right =
+  match (left, right) with
+  | Int _, List _ -> compare_data (List [ left ]) right
+  | List _, Int _ -> compare_data left (List [ right ])
+  | Int l, Int r -> compare l r
+  | List (l :: lxs), List (r :: rxs) -> (
+      match compare_data l r with
+      | 0 -> compare_data (List lxs) (List rxs)
+      | ord -> ord)
+  | List l, List r -> compare l r
+
+let divider_2 = List [ List [ Int 2 ] ]
+let divider_6 = List [ List [ Int 6 ] ]
+
 let consume seq =
-  let rec aux is_left seq l =
+  let rec aux seq l =
     match Seq.uncons seq with
-    | Some ("", rest) -> aux true rest l
-    | None -> List.rev l
-    | Some (line, rest) -> (
-        match (is_left, l) with
-        | true, _ ->
-            let elem = (Eio.Buf_read.of_string line |> parse_data, Int 0) in
-            aux false rest (elem :: l)
-        | false, (x, _) :: xs ->
-            let elem = (x, Eio.Buf_read.of_string line |> parse_data) in
-            aux true rest (elem :: xs)
-        | _ -> failwith "Can't be right at this point")
+    | Some ("", rest) -> aux rest l
+    | None -> List.fast_sort compare_data l
+    | Some (line, rest) ->
+        let elem = Eio.Buf_read.of_string line |> parse_data in
+        aux rest (elem :: l)
   in
-  aux true seq []
-
-type order = Greater | Equal | Lesser
-
-let is_correct (left, right) =
-  let rec loop left right =
-    match (left, right) with
-    | Int l, Int r when l = r -> Equal
-    | Int l, Int r when l < r -> Lesser
-    | Int _, Int _ -> Greater
-    | List (l :: lxs), List (r :: rxs) -> (
-        match loop l r with Equal -> loop (List lxs) (List rxs) | ord -> ord)
-    | Int _, List _ -> loop (List [ left ]) right
-    | List _, Int _ -> loop left (List [ right ])
-    | List [], List (_ :: _) -> Lesser
-    | List (_ :: _), List [] -> Greater
-    | List [], List [] -> Equal
-  in
-  match loop left right with
-  | Lesser -> true
-  | Greater -> false
-  | Equal -> failwith "Supposedly can't happen"
+  aux seq [ divider_2; divider_6 ]
 
 let day _display contents =
   let buff = Eio.Buf_read.of_string contents in
   let lines = Eio.Buf_read.lines buff in
-  let pairs = consume lines in
-  let rec loop sum i = function
-    | [] -> sum
-    | pair :: rest ->
-        let new_sum = if is_correct pair then sum + i else sum in
-        loop new_sum (i + 1) rest
+  let sorted = consume lines in
+  let rec loop prod i = function
+    | [] -> failwith "Supposedly can't happen"
+    | elem :: rest ->
+        if elem = divider_2 then loop i (i + 1) rest
+        else if elem = divider_6 then prod * i
+        else loop prod (i + 1) rest
   in
-  loop 0 1 pairs |> string_of_int
+  loop 1 1 sorted |> string_of_int
