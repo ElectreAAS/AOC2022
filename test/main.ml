@@ -14,6 +14,7 @@ let all =
     ("Day 11", [ Test11.day ]);
     ("Day 12", [ Test12.day ]);
     ("Day 13", [ Test13.day ]);
+    ("Day 14", [ Test14.day ]);
   ]
 
 let () = Alcotest.run "Everything" all
