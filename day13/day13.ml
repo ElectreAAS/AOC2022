@@ -1,43 +1,44 @@
-open Eio.Buf_read.Syntax
+module EBR = Eio.Buf_read
+open EBR.Syntax
 
 type data = Int of int | List of data list
 
-let rec pp = function
-  | Int n -> print_int n
-  | List l ->
-      print_char '[';
-      List.iter
-        (fun d ->
-          pp d;
-          print_char ',')
-        l;
-      print_char ']'
+let pp l =
+  let rec print_main oc = function
+    | Int n -> Printf.fprintf oc "%d" n
+    | List l -> Printf.fprintf oc "[%a]" print_contents l
+  and print_contents oc = function
+    | [] -> ()
+    | [ x ] -> print_main oc x
+    | x :: xs -> Printf.fprintf oc "%a,%a" print_main x print_contents xs
+  in
+  print_main stdout l;
+  print_newline ()
 
 let parse_data buff =
   let parse_num =
-    let+ str =
-      Eio.Buf_read.take_while (function '0' .. '9' -> true | _ -> false)
-    in
-    int_of_string str
+    let+ str = EBR.take_while (function '0' .. '9' -> true | _ -> false) in
+    Int (int_of_string str)
   in
-  let rec parse_list contents =
-    match Eio.Buf_read.peek_char buff with
-    | Some '[' ->
-        Eio.Buf_read.string "[" buff;
-        parse_list (parse_list [] :: contents)
-    | Some ']' ->
-        Eio.Buf_read.string "]" buff;
-        List (List.rev contents)
+  let rec parse_main () =
+    EBR.string "[" buff;
+    let contents = parse_contents [] in
+    EBR.string "]" buff;
+    List contents
+  and parse_contents so_far =
+    match EBR.peek_char buff with
+    | Some '[' -> parse_contents (parse_main () :: so_far)
+    | Some ']' -> List.rev so_far
     | Some '0' .. '9' ->
         let n = parse_num buff in
-        parse_list (Int n :: contents)
+        parse_contents (n :: so_far)
     | Some ',' ->
-        Eio.Buf_read.string "," buff;
-        parse_list contents
+        EBR.string "," buff;
+        parse_contents so_far
     | Some c -> failwith (Printf.sprintf "Unknown character %c" c)
-    | None -> List contents
+    | None -> failwith "Unmatched open bracket '['"
   in
-  parse_list []
+  parse_main ()
 
 let rec compare_data left right =
   match (left, right) with
@@ -53,26 +54,21 @@ let rec compare_data left right =
 let divider_2 = List [ List [ Int 2 ] ]
 let divider_6 = List [ List [ Int 6 ] ]
 
-let consume seq =
-  let rec aux seq l =
-    match Seq.uncons seq with
-    | Some ("", rest) -> aux rest l
-    | None -> List.fast_sort compare_data l
-    | Some (line, rest) ->
-        let elem = Eio.Buf_read.of_string line |> parse_data in
-        aux rest (elem :: l)
+let day display contents =
+  let buff = EBR.of_string contents in
+  let lines =
+    EBR.seq
+      ~stop:(EBR.take_while (( = ) '\n') *> EBR.at_end_of_input)
+      parse_data buff
+    |> List.of_seq
   in
-  aux seq [ divider_2; divider_6 ]
-
-let day _display contents =
-  let buff = Eio.Buf_read.of_string contents in
-  let lines = Eio.Buf_read.lines buff in
-  let sorted = consume lines in
+  if display then List.iter pp lines;
+  let sorted = List.fast_sort compare_data (divider_2 :: divider_6 :: lines) in
   let rec loop prod i = function
-    | [] -> failwith "Supposedly can't happen"
+    | [] -> failwith "We should find elements we added before a sort"
     | elem :: rest ->
         if elem = divider_2 then loop i (i + 1) rest
         else if elem = divider_6 then prod * i
         else loop prod (i + 1) rest
   in
-  loop 1 1 sorted |> string_of_int
+  loop 0 1 sorted |> string_of_int
