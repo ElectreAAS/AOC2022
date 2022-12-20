@@ -54,7 +54,7 @@ let rec compare_data left right =
 let divider_2 = List [ List [ Int 2 ] ]
 let divider_6 = List [ List [ Int 6 ] ]
 
-let day display contents =
+let day _display contents =
   let buff = EBR.of_string contents in
   let lines =
     EBR.seq
@@ -62,7 +62,7 @@ let day display contents =
       parse_data buff
     |> List.of_seq
   in
-  if display then List.iter pp lines;
+  (* if display then List.iter pp lines; *)
   let sorted = List.fast_sort compare_data (divider_2 :: divider_6 :: lines) in
   let rec loop prod i = function
     | [] -> failwith "We should find elements we added before a sort"
