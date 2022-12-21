@@ -59,12 +59,18 @@ let pp state =
   for y = 0 to height do
     print_string "│ ";
     for x = 0 to width do
-      let str =
-        match state.grid.(x).(y) with Rock -> "█" | Air -> " " | Sand -> "░"
-      in
-      print_string str
+      match state.grid.(x).(y) with
+      | Rock -> print_string "\x1b[38;5;240m█"
+      | Air -> print_char ' '
+      | Sand ->
+          Printf.printf "\x1b[38;5;136m%s"
+            (match (state.grid.(x - 1).(y), state.grid.(x + 1).(y)) with
+            | Air, Air -> "◬"
+            | Air, _ -> "◢"
+            | _, Air -> "◣"
+            | _, _ -> "█")
     done;
-    print_string " │\n"
+    print_string "\x1b[0m │\n"
   done;
   print_string "│";
   for _ = 0 to width + 2 do
