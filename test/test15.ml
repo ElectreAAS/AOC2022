@@ -3,6 +3,6 @@ let day =
   Alcotest.test_case "Test puzzle input" `Quick @@ fun () ->
   let contents = Utils.get_test 15 in
   let result = day false contents in
-  let expected = "26" in
+  let expected = "56000011" in
   Alcotest.(check string) "puzzle input should be solved!" expected result;
   ()
