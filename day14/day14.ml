@@ -13,7 +13,7 @@ let parse max_y line =
   List.fold_left_map pathize max_y chunks
 
 type cell = Rock | Sand | Air
-type state = { mutable grid : cell array array; mutable middle : int }
+type state = { grid : cell array array; middle : int }
 
 let sand_pour = 500
 
