@@ -92,7 +92,7 @@ let a_star hill start =
   in
   loop ()
 
-let day display contents =
+let day display contents _ =
   let hill, start = parse contents in
   if display then pp hill;
   a_star hill start |> string_of_int

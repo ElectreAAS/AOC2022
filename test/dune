@@ -2,6 +2,7 @@
  (name main)
  (libraries
   alcotest
+  domainslib
   utils
   day1
   day2

@@ -16,7 +16,7 @@ let overlap (left, right) =
   | -1 -> right.low <= left.high
   | _ -> left.low <= right.high
 
-let day _ contents =
+let day _ contents _ =
   let lines = String.trim contents |> String.split_on_char '\n' in
   List.fold_left
     (fun acc line -> if overlap @@ pairs_of_string line then acc + 1 else acc)

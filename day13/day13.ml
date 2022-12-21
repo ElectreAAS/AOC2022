@@ -54,7 +54,7 @@ let rec compare_data left right =
 let divider_2 = List [ List [ Int 2 ] ]
 let divider_6 = List [ List [ Int 6 ] ]
 
-let day _display contents =
+let day _ contents _ =
   let buff = EBR.of_string contents in
   let lines =
     EBR.seq

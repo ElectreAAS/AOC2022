@@ -99,7 +99,7 @@ let rec step state move n =
     let new_state = post_head state 0 in
     step new_state move (n - 1)
 
-let day display contents =
+let day display contents _ =
   let lines = String.trim contents |> String.split_on_char '\n' in
   let final_state =
     List.fold_left

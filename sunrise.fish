@@ -47,17 +47,17 @@ end
 
 # Create placeholder ocaml file
 echo "Creating $dir_name/day$today.ml"
-echo "let day _display contents =
+echo "let day _display contents _pool =
   let lines = String.trim contents |> String.split_on_char '\n' in
   List.hd lines" >$dir_name/day$today.ml
 
 # Create test file
 echo "Creating test/test$today.ml"
-echo "let day =
+echo "let day pool =
   let open Day$today in
   Alcotest.test_case \"Test puzzle input\" `Quick @@ fun () ->
   let contents = Utils.get_test $today in
-  let result = day false contents in
+  let result = day false contents pool in
   let expected = \"$argv\" in
   Alcotest.(check string) \"puzzle input should be solved!\" expected result;
   ()" >test/test$today.ml
@@ -66,7 +66,7 @@ echo "let day =
 echo "Creating $dir_name/dune"
 echo "(library
  (name day$today)
- (libraries utils))" >$dir_name/dune
+ (libraries utils domainslib))" >$dir_name/dune
 
 # Get the needed session cookie
 set cookie $AOC2022_SESSION

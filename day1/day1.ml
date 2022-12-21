@@ -1,4 +1,4 @@
-let day _ contents =
+let day _ contents _ =
   let lines = String.split_on_char '\n' contents in
   let _, max1, max2, max3 =
     List.fold_left

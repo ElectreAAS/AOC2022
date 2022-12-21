@@ -9,7 +9,7 @@ let array_alldiff a =
     true
   with Exit -> false
 
-let day _ contents =
+let day _ contents _ =
   let line = String.trim contents in
   let marker_size = 14 in
   let array = Array.init marker_size (String.get line) in

@@ -24,7 +24,7 @@ let rec steps state instr =
       | NoOp -> { state with cycle; crt }
       | Add n -> { state with cycle; hanging = Some n; crt })
 
-let day _ contents =
+let day _ contents _ =
   let lines = String.trim contents |> String.split_on_char '\n' in
   let final_state =
     List.fold_left

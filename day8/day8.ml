@@ -62,7 +62,7 @@ let scenic_score x y forest =
   in
   up 0 (y - 1) * down 0 (y + 1) * left 0 (x - 1) * right 0 (x + 1)
 
-let day display contents =
+let day display contents _ =
   let forest = parse contents in
   if display then pp forest;
   let len = Array.length forest in

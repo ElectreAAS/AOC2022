@@ -1,3 +1,5 @@
+module T = Domainslib.Task
+
 let nb_days = 15
 
 let functions =
@@ -19,26 +21,34 @@ let functions =
     Day15.day;
   |]
 
-let run display n =
+let run display n pool =
   let contents = Utils.get_input n in
   let before = Mtime_clock.counter () in
-  let result = functions.(n - 1) display contents in
+  let result = functions.(n - 1) display contents pool in
   let elapsed = Mtime_clock.count before |> Mtime.Span.to_ms in
   Printf.printf "\nDay %2d: finished in %7.3fms, with result = %s" n elapsed
     result;
   elapsed
 
-let dispatch display = function
-  | 0 ->
-      let total_time = ref 0.0 in
-      for i = 1 to nb_days do
-        total_time := !total_time +. run display i
-      done;
-      Printf.printf "\nTotal: %.3fms\n" !total_time
-  | n when n >= 1 && n <= nb_days ->
-      ignore (run display n);
-      print_newline ()
-  | _ -> ()
+let dispatch display n =
+  let pool =
+    T.setup_pool ~name:"dispatcher"
+      ~num_domains:(Domain.recommended_domain_count () - 1)
+      ()
+  in
+  T.run pool (fun () ->
+      match n with
+      | 0 ->
+          let total_time = ref 0.0 in
+          for i = 1 to nb_days do
+            total_time := !total_time +. run display i pool
+          done;
+          Printf.printf "\nTotal: %.3fms\n" !total_time
+      | n when n >= 1 && n <= nb_days ->
+          ignore (run display n pool);
+          print_newline ()
+      | _ -> ());
+  T.teardown_pool pool
 
 let () =
   let error () =

@@ -18,7 +18,9 @@ let pp i =
   in
   match i with
   | Mono (x, y) -> Printf.printf "[%d … %d]\n" x y
-  | Poly l -> pp_list l
+  | Poly l ->
+      print_string "\nFound a suitable interval: ";
+      pp_list l
 
 let rec merge left right =
   let rec aux (low, high) = function
@@ -83,34 +85,31 @@ let cant_be sensor target size =
 module T = Domainslib.Task
 module C = Domainslib.Chan
 
-let day display contents =
+let day display contents pool =
   let lines = String.trim contents |> String.split_on_char '\n' in
   let len, sensors =
     List.fold_left_map (fun n line -> (n + 1, parse line)) 0 lines
   in
   let size = if len < 20 then 20 else 4_000_000 in
   let chan = C.make_bounded 1 in
-  let pool = T.setup_pool ~num_domains:7 () in
-  let go () =
-    T.parallel_for ~chunk_size:(size / 8) ~start:0 ~finish:size
-      ~body:(fun y ->
-        let interval =
-          List.fold_left
-            (fun i s ->
-              match cant_be s y size with
-              | None -> i
-              | Some (a, b) -> merge i (Mono (a, b)))
-            (Poly []) sensors
-        in
-        let res = difference (0, size) interval in
-        Option.iter
-          (fun x ->
-            if not display then pp interval;
-            C.send chan (x, y))
-          (single_opt res))
-      pool
-  in
-  T.run pool go;
-  T.teardown_pool pool;
+  T.parallel_for
+    ~chunk_size:(size / T.get_num_domains pool)
+    ~start:0 ~finish:size
+    ~body:(fun y ->
+      let interval =
+        List.fold_left
+          (fun i s ->
+            match cant_be s y size with
+            | None -> i
+            | Some (a, b) -> merge i (Mono (a, b)))
+          (Poly []) sensors
+      in
+      let res = difference (0, size) interval in
+      Option.iter
+        (fun x ->
+          if display then pp interval;
+          C.send chan (x, y))
+        (single_opt res))
+    pool;
   let x, y = C.recv chan in
-  (x * 4_000_000) + y + 1 |> string_of_int
+  (x * 4_000_000) + y |> string_of_int

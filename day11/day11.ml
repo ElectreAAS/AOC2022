@@ -60,7 +60,7 @@ let round active monkeys ppcm =
       throw items)
     monkeys
 
-let day display contents =
+let day display contents _ =
   let monkeys, ppcm = parse contents in
   let len = Array.length monkeys in
   let active = Array.make len 0 in

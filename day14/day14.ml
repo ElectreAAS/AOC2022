@@ -109,7 +109,7 @@ let run state =
   in
   loop 1 []
 
-let day display contents =
+let day display contents _ =
   let lines = String.trim contents |> String.split_on_char '\n' in
   let max_y, paths = List.fold_left_map parse min_int lines in
   let state = init_state max_y paths in
