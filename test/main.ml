@@ -20,6 +20,7 @@ let all pool =
          ("Day 13", [ Test13.day ]);
          ("Day 14", [ Test14.day ]);
          ("Day 15", [ Test15.day ]);
+         ("Day 16", [ Test16.day ]);
        ]
 
 let () =

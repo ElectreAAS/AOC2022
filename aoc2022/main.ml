@@ -1,6 +1,6 @@
 module T = Domainslib.Task
 
-let nb_days = 15
+let nb_days = 16
 
 let functions =
   [|
@@ -19,6 +19,7 @@ let functions =
     Day13.day;
     Day14.day;
     Day15.day;
+    Day16.day;
   |]
 
 let run display n pool =

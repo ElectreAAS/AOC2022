@@ -29,7 +29,7 @@ sed -i "s/\($yesterday\))/\1\n  day$today)/" aoc2022/dune
 
 # test/main.ml
 echo "Updating test/main.ml"
-sed -i "s/\($yesterday.day ]);\)/\1\n    (\"Day $today\", [ Test$today.day ]);/" test/main.ml
+sed -i "s/\($yesterday.day ]);\)/\1\n         (\"Day $today\", [ Test$today.day ]);/" test/main.ml
 
 # test/dune
 echo "Updating test/dune"
