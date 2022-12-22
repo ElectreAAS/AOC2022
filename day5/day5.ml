@@ -1,4 +1,4 @@
-open Utils.Extensions
+open Extensions
 
 let parse_stacks l =
   let nb_stacks = (String.length (List.hd l) / 4) + 1 in

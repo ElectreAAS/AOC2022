@@ -1,4 +1,4 @@
-open Utils.Extensions
+open Extensions
 
 module PairSet = Set.Make (struct
   type t = int * int

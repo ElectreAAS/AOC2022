@@ -1,5 +1,6 @@
+open Extensions
+
 let split_on_test =
-  let open Utils.Extensions in
   Alcotest.test_case "Split_on" `Quick @@ fun () ->
   let contents = Utils.get_test 5 in
   let lines = String.split_on_char '\n' contents in

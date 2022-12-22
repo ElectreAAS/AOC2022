@@ -4,6 +4,7 @@
   alcotest
   domainslib
   utils
+  extensions
   day1
   day2
   day3

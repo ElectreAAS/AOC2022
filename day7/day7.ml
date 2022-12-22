@@ -5,10 +5,7 @@ let pp = function
       invalid_arg
         "Don't call this function on anything other than the root please"
   | Directory (size, _, children) ->
-      let green = "\x1b[38;2;23;130;59m" in
-      let red = "\x1b[38;2;194;17;17m" in
-      let gold = "\x1b[33m" in
-      let reset = "\x1b[0m" in
+      let open Colours in
       let rec loop offset node is_last =
         let pipe = if is_last then "└──" else "├──" in
         match node with
@@ -29,7 +26,7 @@ let pp = function
         loop green children.(i) false
       done;
       loop green children.(len - 1) true;
-      Printf.printf "%s" reset
+      print_string reset
 
 let parse_node line =
   match Scanf.sscanf_opt line "%d %s" (fun left right -> (left, right)) with

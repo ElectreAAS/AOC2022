@@ -5,19 +5,20 @@ let parse contents =
 
 let pp forest =
   let pp_char c =
-    Printf.printf "\x1b[38;2;%sm%c"
-      (* Green gradient *)
-      (match c with
-      | '0' -> "233;247;239"
-      | '1' -> "212;239;223"
-      | '2' -> "169;223;191"
-      | '3' -> "125;206;160"
-      | '4' -> "82;190;128"
-      | '5' -> "39;174;96"
-      | '6' -> "34;153;84"
-      | '7' -> "30;132;73"
-      | '8' -> "25;111;61"
-      | _ -> "20;90;50")
+    Printf.printf "%s%c"
+      (Colours.rgb
+         (* Green gradient *)
+         (match c with
+         | '0' -> (233, 247, 239)
+         | '1' -> (212, 239, 223)
+         | '2' -> (169, 223, 191)
+         | '3' -> (125, 206, 160)
+         | '4' -> (82, 190, 128)
+         | '5' -> (39, 174, 96)
+         | '6' -> (34, 153, 84)
+         | '7' -> (30, 132, 73)
+         | '8' -> (25, 111, 61)
+         | _ -> (20, 90, 50)))
       c
   in
   print_newline ();
@@ -26,7 +27,7 @@ let pp forest =
       Array.iter pp_char r;
       print_newline ())
     forest;
-  Printf.printf "\x1b[0m"
+  print_string Colours.reset
 
 let is_visible x y forest =
   let len = Array.length forest in

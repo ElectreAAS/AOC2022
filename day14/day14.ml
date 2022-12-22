@@ -45,6 +45,7 @@ let init_state max_y (paths : path list) =
   { grid; middle }
 
 let pp state =
+  let open Colours in
   let width = Array.length state.grid - 1 in
   let height = Array.length state.grid.(0) - 1 in
   print_string "\n┌";
@@ -60,17 +61,17 @@ let pp state =
     print_string "│ ";
     for x = 0 to width do
       match state.grid.(x).(y) with
-      | Rock -> print_string "\x1b[38;5;240m█"
+      | Rock -> Printf.printf "%s█" green
       | Air -> print_char ' '
       | Sand ->
-          Printf.printf "\x1b[38;5;136m%s"
+          Printf.printf "%s%s" gold
             (match (state.grid.(x - 1).(y), state.grid.(x + 1).(y)) with
             | Air, Air -> "◬"
             | Air, _ -> "◢"
             | _, Air -> "◣"
             | _, _ -> "█")
     done;
-    print_string "\x1b[0m │\n"
+    Printf.printf "%s │\n" reset
   done;
   print_string "│";
   for _ = 0 to width + 2 do

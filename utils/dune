@@ -1,3 +1,12 @@
 (library
  (name utils)
+ (modules utils)
  (libraries eio_main))
+
+(library
+ (name extensions)
+ (modules extensions))
+
+(library
+ (name colours)
+ (modules colours))

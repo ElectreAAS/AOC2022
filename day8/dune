@@ -1,3 +1,3 @@
 (library
  (name day8)
- (libraries utils))
+ (libraries utils extensions colours))
