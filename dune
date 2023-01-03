@@ -1,7 +1,7 @@
 (env
  (dev
   (ocamlc_flags
-   (-g -bin-annot -short-paths -w A-4-44-70)))
+   (-g -bin-annot -short-paths -w A-4-40-42-44-70)))
  (release
   (ocamlopt_flags
    (-O3 -inline 3))))
