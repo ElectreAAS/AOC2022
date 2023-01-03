@@ -71,7 +71,7 @@ let prune graph =
       graph
   in
   let rec loop n graph =
-    print_to_dot graph (string_of_int n);
+    (* print_to_dot graph (string_of_int n); *)
     let broken_valves =
       Graph.filter (fun name (flow, _) -> flow = 0 && name <> "AA") graph
     in
@@ -126,18 +126,6 @@ type state = {
   trace : string;
 }
 
-let print_state { position; time; score; flow; opened; _ } =
-  let opens =
-    if StrSet.is_empty opened then "No valves are open."
-    else
-      Printf.sprintf "Valve(s)%s are open, releasing %d pressure."
-        (StrSet.fold (fun name str -> str ^ " " ^ name) opened "")
-        flow
-  in
-  Printf.sprintf
-    "\n== Minute %d ==\n%s\nYou are in position %s, with a score of %d\n" time
-    opens position score
-
 let next_states graph
     ({ position; time; score; flow; opened; visited; trace } as state) =
   if Graph.for_all (fun name (f, _) -> f = 0 || StrSet.mem name opened) graph
@@ -186,7 +174,7 @@ let next_states graph
                   to_wait;
             };
           ]
-      | xs -> xs
+      | _ -> filtered_neighbours
     else
       {
         state with
@@ -200,50 +188,21 @@ let next_states graph
       :: filtered_neighbours
 
 let brute display graph init =
-  (* let bin_nb = 2000 in *)
-  (* let bins = Array.init bin_nb (fun _ -> Queue.create ()) in *)
-  (* let cursor = ref 0 in *)
   let q = Queue.create () in
   Queue.add init q;
 
-  let take_next () =
-    Queue.take q
-    (* match Queue.take_opt bins.(!cursor) with
-       | Some next -> next
-       | None ->
-           if !cursor = 0 then failwith "Looped around";
-           cursor := pred !cursor;
-           take_next () *)
-  in
-
-  let rec aux l max_score =
-    match take_next () with
-    | exception Queue.Empty ->
-        List.fold_left
-          (fun (m, s) (score, trace) ->
-            if score > m then (score, trace) else (m, s))
-          (0, "") l
-    | st ->
+  let rec aux max_score trace =
+    match Queue.take_opt q with
+    | None -> (max_score, trace)
+    | Some st ->
         if st.time = time_limit then
-          let new_max = max max_score st.score in
-          (* Printf.printf "Current candidate: %d\r" new_max; *)
-          (* Unix.sleepf 0.1; *)
-          (* (st.score, st.trace) *)
-          aux ((st.score, st.trace) :: l) new_max
+          if st.score > max_score then aux st.score st.trace
+          else aux max_score trace
         else (
-          (* let self = st.score + (st.flow * (time_limit - st.time)) in *)
-          List.iter
-            (fun s ->
-              (* let other = s.score + (s.flow * (time_limit - s.time)) in *)
-              (* let fscore_diff = other in *)
-              (* assert (fscore_diff >= 0 && fscore_diff < bin_nb); *)
-              (* cursor := max !cursor fscore_diff; *)
-              (* Queue.add s bins.(fscore_diff)) *)
-              Queue.add s q)
-            (next_states graph st);
-          aux l max_score)
+          List.iter (fun s -> Queue.add s q) (next_states graph st);
+          aux max_score trace)
   in
-  let score, trace = aux [] 0 in
+  let score, trace = aux 0 "" in
   if display then print_endline trace;
   score
 
