@@ -48,7 +48,7 @@ let a_star hill start =
   let cursor = ref 0 in
   Queue.add start bins.(0);
 
-  let neighbors x y =
+  let neighbours x y =
     List.filter_map
       (fun (nx, ny) ->
         if nx < 0 || ny < 0 || nx = width || ny = height then None
@@ -63,7 +63,7 @@ let a_star hill start =
     match Queue.take_opt bins.(!cursor) with
     | Some next -> next
     | None ->
-        cursor := (!cursor + 1) mod bin_nb;
+        cursor := succ !cursor mod bin_nb;
         take_next ()
   in
   let rec loop () =
@@ -87,7 +87,7 @@ let a_star hill start =
               assert (fscore_diff >= 0 && fscore_diff < bin_nb);
               let target_bin = (!cursor + fscore_diff) mod bin_nb in
               Queue.add (nx, ny) bins.(target_bin))
-        (neighbors x y);
+        (neighbours x y);
       loop ())
   in
   loop ()
