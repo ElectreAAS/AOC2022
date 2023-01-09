@@ -1,4 +1,4 @@
-let time_limit = 30
+let time_limit = 26
 
 type bitmap = BMP of int
 type id = ID of int
@@ -20,6 +20,7 @@ module AdjSet = Set.Make (Adj)
 let bmp_add (ID x) (BMP bmp) = BMP (bmp lor (1 lsl x))
 let bmp_mem (ID x) (BMP bmp) = bmp land (1 lsl x) > 0
 let bmp_singleton (ID x) = BMP (1 lsl x)
+let bmp_disjoint (BMP b1) (BMP b2) = b1 land b2 = 0
 
 let adj_of_bitmap (BMP bitmap) =
   let rec loop set n =
@@ -102,8 +103,7 @@ let parse contents =
   in
   (graph, Hashtbl.find substs "AA")
 
-let prune ((graph : (int * bitmap) Graph.t), (aa_id : id)) :
-    (int * AdjSet.t) Graph.t =
+let prune graph aa_id =
   let weighted =
     Graph.map (fun (flow, neighs) -> (flow, adj_of_bitmap neighs)) graph
   in
@@ -228,28 +228,42 @@ let next_states graph
       }
       :: filtered_neighbours
 
-let brute display graph init =
+let brute graph init =
   let q = Queue.create () in
   Queue.add init q;
+  let results = Hashtbl.create 5000 in
 
-  let rec aux max_score trace =
+  let disjoint () =
+    let s = Hashtbl.to_seq results in
+    let rec loop res s1 s2 =
+      match (Seq.uncons s1, Seq.uncons s2) with
+      | None, _ -> res
+      | Some (_, xs), None -> loop res xs xs
+      | Some ((bmp1, score1), _), Some ((bmp2, score2), ys) ->
+          if bmp_disjoint bmp1 bmp2 then loop (max res (score1 + score2)) s1 ys
+          else loop res s1 ys
+    in
+    loop 0 s s
+  in
+
+  let rec aux () =
     match Queue.take_opt q with
-    | None -> (max_score, trace)
+    | None -> disjoint ()
     | Some st ->
-        if st.time = time_limit then
-          if st.score > max_score then aux st.score st.trace
-          else aux max_score trace
+        if st.time = time_limit then (
+          (match Hashtbl.find_opt results st.opened with
+          | None -> Hashtbl.add results st.opened st.score
+          | Some score -> Hashtbl.replace results st.opened (max st.score score));
+          aux ())
         else (
           List.iter (fun s -> Queue.add s q) (next_states graph st);
-          aux max_score trace)
+          aux ())
   in
-  let score, trace = aux 0 "" in
-  if display then print_endline trace;
-  score
+  aux ()
 
-let day display contents _pool =
+let day _display contents _pool =
   let big_graph, aa_id = parse contents in
-  let graph = prune (big_graph, aa_id) in
+  let graph = prune big_graph aa_id in
   let init =
     {
       position = aa_id;
@@ -261,4 +275,4 @@ let day display contents _pool =
       trace = "";
     }
   in
-  brute display graph init |> string_of_int
+  brute graph init |> string_of_int
