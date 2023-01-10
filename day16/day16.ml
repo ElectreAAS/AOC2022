@@ -10,24 +10,28 @@ module Graph = Map.Make (struct
 end)
 
 module Adj = struct
-  type t = { w : int; dst : id }
+  type t = int * id
 
   let compare = compare
 end
 
 module AdjSet = Set.Make (Adj)
 
+module IntSet = Set.Make (struct
+  type t = int
+
+  let compare = compare
+end)
+
 let bmp_add (ID x) (BMP bmp) = BMP (bmp lor (1 lsl x))
 let bmp_mem (ID x) (BMP bmp) = bmp land (1 lsl x) > 0
-let bmp_singleton (ID x) = BMP (1 lsl x)
 let bmp_disjoint (BMP b1) (BMP b2) = b1 land b2 = 0
 
 let adj_of_bitmap (BMP bitmap) =
   let rec loop set n =
     let shifted = bitmap lsr n in
     if shifted = 0 then set
-    else if shifted land 1 > 0 then
-      loop (AdjSet.add { w = 1; dst = ID n } set) (n + 1)
+    else if shifted land 1 > 0 then loop (AdjSet.add (1, ID n) set) (n + 1)
     else loop set (n + 1)
   in
   loop AdjSet.empty 0
@@ -43,29 +47,25 @@ let print_to_dot graph name =
         else if flow = 0 then "grey"
         else "forestgreen");
       AdjSet.iter
-        (fun { w; dst = ID dst } ->
+        (fun (w, ID dst) ->
           Printf.fprintf oc "    %d -- %d [label=%d];\n" name dst w)
         neighbours)
     graph;
   Printf.fprintf oc "}";
   close_out oc
 
-let pp graph =
-  Printf.fprintf stdout "{\n";
-  Graph.iter
-    (fun (ID name) (flow, neighbours) ->
-      Printf.fprintf stdout "  %d: %d, #{" name flow;
-      AdjSet.iter
-        (fun { w; dst = ID dst } -> Printf.fprintf stdout " (%d, %d)" w dst)
-        neighbours;
-      Printf.fprintf stdout " }\n")
-    graph;
-  Printf.fprintf stdout "}\n%!"
-
 let parse contents =
   let lines = String.trim contents |> String.split_on_char '\n' in
   let substs = Hashtbl.create (List.length lines) in
-  let cursor = ref 0 in
+  Hashtbl.add substs "AA" (ID 0);
+  let cursor = ref 1 in
+  List.iter
+    (fun line ->
+      Scanf.sscanf line "Valve %s has flow rate=%d" (fun name flow ->
+          if flow <> 0 then (
+            Hashtbl.add substs name (ID !cursor);
+            incr cursor)))
+    lines;
   let graph =
     List.fold_left
       (fun map line ->
@@ -101,16 +101,15 @@ let parse contents =
             Graph.add id (flow, neighbours) map))
       Graph.empty lines
   in
-  (graph, Hashtbl.find substs "AA")
+  graph
 
-let prune graph aa_id =
+let prune graph =
   let weighted =
     Graph.map (fun (flow, neighs) -> (flow, adj_of_bitmap neighs)) graph
   in
-  let rec loop n graph =
-    (* print_to_dot graph (string_of_int n); *)
+  let rec loop graph =
     let broken_valves =
-      Graph.filter (fun name (flow, _) -> flow = 0 && name <> aa_id) graph
+      Graph.filter (fun name (flow, _) -> flow = 0 && name <> ID 0) graph
     in
     if Graph.is_empty broken_valves then graph
     else
@@ -119,7 +118,7 @@ let prune graph aa_id =
       let new_g =
         (* Create a new graph without this valve. *)
         AdjSet.fold
-          (fun { w; dst } g ->
+          (fun (w, dst) g ->
             (* Update all neighbours of the chosen valve to point to their metas. *)
             Graph.update dst
               (function
@@ -132,15 +131,15 @@ let prune graph aa_id =
                     let neighs' =
                       neighs
                       (* We remove the chosen valve from this valve's neighbours *)
-                      |> AdjSet.remove { w; dst = rm_name }
+                      |> AdjSet.remove (w, rm_name)
                       (* We add the neighbours of the chosen valve *)
                       |> AdjSet.union
                            (rm_neighs
                            (* Excluding itself *)
-                           |> AdjSet.remove { w; dst }
+                           |> AdjSet.remove (w, dst)
                            |> AdjSet.map
                                 (* Without forgetting to increment the weight of the edges *)
-                                (fun e -> { e with w = w + e.w }))
+                                (fun (old_w, id) -> (old_w + w, id)))
                     in
                     Some (flow, neighs'))
               g)
@@ -148,90 +147,107 @@ let prune graph aa_id =
           (* Here we remove the useless valve at the toplevel *)
           (Graph.remove rm_name graph)
       in
-      loop (n + 1) new_g
+      loop new_g
   in
-  loop 0 weighted
+  loop weighted
+
+let to_adj_matrix graph =
+  let nb_nodes = Graph.cardinal graph in
+  let grid = Array.make_matrix nb_nodes nb_nodes None in
+  Graph.iter
+    (fun (ID x) (flow, neighbours) ->
+      grid.(x).(x) <- Some flow;
+      AdjSet.iter (fun (w, ID y) -> grid.(x).(y) <- Some w) neighbours)
+    graph;
+  grid
+
+let fill_all_pairs arr =
+  let nb_nodes = Array.length arr in
+  let vertices = Seq.ints 0 |> Seq.take nb_nodes |> IntSet.of_seq in
+  for start_node = 0 to nb_nodes - 1 do
+    (* We start Dijkstra here, so once for each node. *)
+    let rec loop u dist_u q =
+      for v = 0 to nb_nodes - 1 do
+        match arr.(u).(v) with
+        | Some d_uv when IntSet.mem v q -> (
+            let alt = dist_u + d_uv in
+            match arr.(start_node).(v) with
+            | Some prev when alt >= prev -> ()
+            | _ -> arr.(start_node).(v) <- Some alt)
+        | _ -> ()
+      done;
+      if not @@ IntSet.is_empty q then
+        let new_u, new_dist_u =
+          IntSet.fold
+            (fun v (curr, dist) ->
+              match arr.(start_node).(v) with
+              | Some dist_v when dist_v < dist -> (v, dist_v)
+              | _ -> (curr, dist))
+            q (-1, max_int)
+        in
+        loop new_u new_dist_u (IntSet.remove new_u q)
+    in
+    loop start_node 0 (IntSet.remove start_node vertices)
+  done;
+  for src = 1 to nb_nodes - 1 do
+    arr.(src).(0) <- None
+  done
 
 type state = {
-  position : id;
+  position : int;
   time : int;
   score : int;
   flow : int;
   opened : bitmap;
-  visited : bitmap;
-  trace : string;
 }
 
-let next_states graph
-    ({ position; time; score; flow; opened; visited; trace } as state) =
-  if Graph.for_all (fun name (f, _) -> f = 0 || bmp_mem name opened) graph then
-    (* No more valves to open, just wait *)
-    let to_wait = time_limit - time in
-    [
-      {
-        state with
-        time = time_limit;
-        score = score + (flow * to_wait);
-        trace = Printf.sprintf "%s\nWaited %d minutes" trace to_wait;
-      };
-    ]
+let all_opened opened arr =
+  let n = Array.length arr in
+  let bmp = BMP ((1 lsl n) - 2) in
+  opened = bmp
+
+let next_states graph ({ position; time; score; flow; opened } as state)
+    is_small =
+  let to_wait = time_limit - time in
+  let just_wait =
+    { state with time = time_limit; score = score + (flow * to_wait) }
+  in
+
+  if all_opened opened graph then (* No more valves to open *)
+    [ just_wait ]
   else
-    let this_flow, neighbours = Graph.find position graph in
-    let filtered_neighbours =
-      AdjSet.fold
-        (fun { w; dst } l ->
-          if bmp_mem dst visited || time + w >= time_limit then l
-          else
-            {
-              state with
-              score = score + (flow * w);
-              time = time + w;
-              position = dst;
-              visited = bmp_add dst visited;
-              trace =
-                Printf.sprintf "%s\nMoved to valve %d" trace
-                  (let (ID dst) = dst in
-                   dst);
-            }
-            :: l)
-        neighbours []
+    let rec filter_neighbours l dst =
+      if position = dst || bmp_mem (ID dst) opened then
+        filter_neighbours l (dst + 1)
+      else if dst >= Array.length graph then
+        match l with
+        | [] ->
+            (* No more openable valves reachable in time *)
+            [ just_wait ]
+        | _ when is_small -> just_wait :: l
+        | _ -> l
+      else
+        match graph.(position).(dst) with
+        | Some w when time + w + 1 < time_limit ->
+            filter_neighbours
+              ({
+                 position = dst;
+                 time = time + w + 1;
+                 score = score + (flow * (w + 1));
+                 flow = flow + Option.get graph.(dst).(dst);
+                 opened = bmp_add (ID dst) opened;
+               }
+              :: l)
+              (dst + 1)
+        | _ -> filter_neighbours l (dst + 1)
     in
-    if this_flow = 0 || bmp_mem position opened then
-      match filtered_neighbours with
-      | [] ->
-          (* No more openable valves reachable in time, just wait *)
-          let to_wait = time_limit - time in
-          [
-            {
-              state with
-              time = time_limit;
-              score = score + (flow * to_wait);
-              trace =
-                Printf.sprintf
-                  "%s\nCouldn't reach anymore valves, waited %d minutes" trace
-                  to_wait;
-            };
-          ]
-      | _ -> filtered_neighbours
-    else
-      {
-        state with
-        score = score + flow;
-        time = time + 1;
-        opened = bmp_add position opened;
-        flow = flow + this_flow;
-        visited = bmp_singleton position;
-        trace =
-          Printf.sprintf "%s\nOpened valve %d" trace
-            (let (ID pos) = position in
-             pos);
-      }
-      :: filtered_neighbours
+    filter_neighbours [] 0
 
 let brute graph init =
   let q = Queue.create () in
   Queue.add init q;
-  let results = Hashtbl.create 5000 in
+  let results = Hashtbl.create 3205 in
+  let is_small = Array.length graph < 10 in
 
   let disjoint () =
     let s = Hashtbl.to_seq results in
@@ -250,29 +266,21 @@ let brute graph init =
     match Queue.take_opt q with
     | None -> disjoint ()
     | Some st ->
-        if st.time = time_limit then (
-          (match Hashtbl.find_opt results st.opened with
+        if st.time = time_limit then
+          match Hashtbl.find_opt results st.opened with
           | None -> Hashtbl.add results st.opened st.score
-          | Some score -> Hashtbl.replace results st.opened (max st.score score));
-          aux ())
-        else (
-          List.iter (fun s -> Queue.add s q) (next_states graph st);
-          aux ())
+          | Some score -> Hashtbl.replace results st.opened (max st.score score)
+        else List.iter (Fun.flip Queue.add q) (next_states graph st is_small);
+        aux ()
   in
   aux ()
 
-let day _display contents _pool =
-  let big_graph, aa_id = parse contents in
-  let graph = prune big_graph aa_id in
-  let init =
-    {
-      position = aa_id;
-      time = 0;
-      score = 0;
-      flow = 0;
-      opened = BMP 0;
-      visited = bmp_singleton aa_id;
-      trace = "";
-    }
-  in
-  brute graph init |> string_of_int
+let day display contents _pool =
+  let graph = contents |> parse |> prune in
+  if display then (
+    print_to_dot graph "pruned";
+    Printf.printf "\nGraph was printed in a graph_pruned.dot file");
+  let matrix = to_adj_matrix graph in
+  fill_all_pairs matrix;
+  let init = { position = 0; time = 0; score = 0; flow = 0; opened = BMP 0 } in
+  brute matrix init |> string_of_int
