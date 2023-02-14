@@ -26,7 +26,7 @@ let run display n pool =
   let contents = Utils.get_input n in
   let before = Mtime_clock.counter () in
   let result = functions.(n - 1) display contents pool in
-  let elapsed = Mtime_clock.count before |> Mtime.Span.to_ms in
+  let elapsed = Mtime.Span.to_float_ns (Mtime_clock.count before) /. 1e6 in
   Printf.printf "\nDay %2d: finished in %7.3fms, with result = %s" n elapsed
     result;
   elapsed
