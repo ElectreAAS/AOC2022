@@ -1,3 +1,21 @@
+module Notty = struct
+  include Notty
+
+  let vmul i n =
+    let rec aux acc n = if n < 2 then acc else aux I.(i <-> acc) (n - 1) in
+    aux i n
+
+  let hmul i n =
+    let rec aux acc n = if n < 2 then acc else aux I.(i <|> acc) (n - 1) in
+    aux i n
+
+  module A = struct
+    include A
+
+    let gold = rgb_888 ~r:255 ~g:199 ~b:6
+  end
+end
+
 module List = struct
   include List
 

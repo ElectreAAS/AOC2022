@@ -66,7 +66,7 @@ echo "let day pool =
 echo "Creating $dir_name/dune"
 echo "(library
  (name day$today)
- (libraries utils domainslib))" >$dir_name/dune
+ (libraries utils extensions))" >$dir_name/dune
 
 # Get the needed session cookie
 set cookie $AOC2022_SESSION

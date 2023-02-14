@@ -4,11 +4,12 @@ let parse contents =
       Array.init len (fun x -> contents.[x + ((len + 1) * y)]))
 
 let pp forest =
+  let open Notty in
   let pp_char c =
-    Printf.printf "%s%c"
-      (Colours.rgb
-         (* Green gradient *)
-         (match c with
+    I.char
+      ((* Green gradient *)
+       let r, g, b =
+         match c with
          | '0' -> (233, 247, 239)
          | '1' -> (212, 239, 223)
          | '2' -> (169, 223, 191)
@@ -18,16 +19,16 @@ let pp forest =
          | '6' -> (34, 153, 84)
          | '7' -> (30, 132, 73)
          | '8' -> (25, 111, 61)
-         | _ -> (20, 90, 50)))
-      c
+         | _ -> (20, 90, 50)
+       in
+       A.fg (A.rgb_888 ~r ~g ~b))
+      c 1 1
   in
-  print_newline ();
-  Array.iter
-    (fun r ->
-      Array.iter pp_char r;
-      print_newline ())
-    forest;
-  print_string Colours.reset
+  I.(
+    void 0 1
+    <-> tabulate (Array.length forest) (Array.length forest.(0)) @@ fun x y ->
+        pp_char forest.(x).(y))
+  |> Notty_unix.output_image
 
 let is_visible x y forest =
   let len = Array.length forest in

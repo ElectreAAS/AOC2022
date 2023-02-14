@@ -1,3 +1,5 @@
+open Extensions
+
 type node = Directory of int * string * node array | File of int * string
 
 let pp = function
@@ -5,28 +7,40 @@ let pp = function
       invalid_arg
         "Don't call this function on anything other than the root please"
   | Directory (size, _, children) ->
-      let open Colours in
+      let open Notty in
       let rec loop offset node is_last =
-        let pipe = if is_last then "└──" else "├──" in
+        let pipe = I.string A.(fg green) (if is_last then "└──" else "├──") in
         match node with
         | File (size, name) ->
-            Printf.printf "%s%s %s%s  %d\n%s" offset pipe gold name size reset
+            I.(offset <|> pipe <|> strf ~attr:A.(fg gold) " %s %d" name size)
         | Directory (size, name, children) ->
-            Printf.printf "%s%s%s %s (directory of size %d)\n" offset pipe red
-              name size;
-            let offset = offset ^ if is_last then "    " else "│   " in
-            for i = 0 to Array.length children - 2 do
-              loop offset children.(i) false
-            done;
-            loop offset children.(Array.length children - 1) true
+            let self =
+              I.(
+                offset <|> pipe
+                <|> strf ~attr:A.(fg red) " %s (directory of size %d)" name size)
+            in
+            let offset =
+              I.(
+                offset
+                <|> string A.(fg green) (if is_last then "    " else "│   "))
+            in
+            let children_arr =
+              Array.mapi
+                (fun i child ->
+                  loop offset child (i = Array.length children - 1))
+                children
+            in
+            Array.fold_left I.( <-> ) self children_arr
       in
-      Printf.printf "\n%s/ (root of size %d)\n" green size;
-      let len = Array.length children in
-      for i = 0 to len - 2 do
-        loop green children.(i) false
-      done;
-      loop green children.(len - 1) true;
-      print_string reset
+      let root =
+        I.(void 0 1 <-> strf ~attr:A.(fg green) "/ (root of size %d)" size)
+      in
+      let children_arr =
+        Array.mapi
+          (fun i child -> loop I.empty child (i = Array.length children - 1))
+          children
+      in
+      Array.fold_left I.( <-> ) root children_arr |> Notty_unix.output_image
 
 let parse_node line =
   match Scanf.sscanf_opt line "%d %s" (fun left right -> (left, right)) with

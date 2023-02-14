@@ -1,6 +1,5 @@
-let ( / ) = Eio.Path.( / )
-
 let slurp path =
+  let ( / ) = Eio.Path.( / ) in
   Eio_main.run @@ fun env ->
   let path = Eio.Stdenv.fs env / path in
   Eio.Path.load path

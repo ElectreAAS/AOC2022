@@ -5,8 +5,5 @@
 
 (library
  (name extensions)
- (modules extensions))
-
-(library
- (name colours)
- (modules colours))
+ (modules extensions)
+ (libraries notty notty.unix))

@@ -21,5 +21,6 @@
   domainslib
   eio
   eio_main
+  notty
   mtime
   (alcotest :with-test)))

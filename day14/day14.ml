@@ -1,3 +1,5 @@
+open Extensions
+
 type path = (int * int) list
 
 let parse max_y line =
@@ -45,43 +47,41 @@ let init_state max_y (paths : path list) =
   { grid; middle }
 
 let pp state =
-  let open Colours in
-  let width = Array.length state.grid - 1 in
-  let height = Array.length state.grid.(0) - 1 in
-  print_string "\n┌";
-  for _ = 0 to width + 2 do
-    print_string "─"
-  done;
-  print_string "┐\n│";
-  for x = -1 to width + 1 do
-    if x = state.middle then print_string "⇣" else print_char ' '
-  done;
-  print_string "│\n";
-  for y = 0 to height do
-    print_string "│ ";
-    for x = 0 to width do
-      match state.grid.(x).(y) with
-      | Rock -> Printf.printf "%s█" green
-      | Air -> print_char ' '
-      | Sand ->
-          Printf.printf "%s%s" gold
-            (match (state.grid.(x - 1).(y), state.grid.(x + 1).(y)) with
-            | Air, Air -> "◬"
-            | Air, _ -> "◢"
-            | _, Air -> "◣"
-            | _, _ -> "█")
-    done;
-    Printf.printf "%s │\n" reset
-  done;
-  print_string "│";
-  for _ = 0 to width + 2 do
-    print_char ' '
-  done;
-  print_string "│\n└";
-  for _ = 0 to width + 2 do
-    print_string "─"
-  done;
-  Printf.printf "┘\n%!"
+  let open Notty in
+  let grid_w = Array.length state.grid in
+  let grid_h = Array.length state.grid.(0) in
+  let pipe = I.string A.empty "│" in
+  let left_wall = vmul (I.hpad 0 1 pipe) grid_h in
+  let right_wall = vmul (I.hpad 1 0 pipe) grid_h in
+  let flat = hmul (I.string A.empty "─") (grid_w + 2) in
+  let top_left = I.string A.empty "┌" in
+  let top_right = I.string A.empty "┐" in
+  let top = I.(top_left <|> flat <|> top_right) in
+  let with_arr =
+    I.(pipe <|> hsnap (grid_w + 2) (string A.empty "⇣") <|> pipe)
+  in
+  let main =
+    I.tabulate grid_w grid_h @@ fun x y ->
+    match state.grid.(x).(y) with
+    | Rock -> I.string (A.fg A.green) "█"
+    | Air -> I.void 1 0
+    | Sand ->
+        I.string (A.fg A.gold)
+          (match (state.grid.(x - 1).(y), state.grid.(x + 1).(y)) with
+          | Air, Air -> "◬"
+          | Air, _ -> "◢"
+          | _, Air -> "◣"
+          | _, _ -> "█")
+  in
+  let empty_line = I.(pipe <|> void (grid_w + 2) 0 <|> pipe) in
+  let bot_left = I.string A.empty "└" in
+  let bot_right = I.string A.empty "┘" in
+  let bot = I.(bot_left <|> flat <|> bot_right) in
+  I.(
+    void 0 1 <-> top <-> with_arr
+    <-> (left_wall <|> main <|> right_wall)
+    <-> empty_line <-> bot)
+  |> Notty_unix.output_image
 
 let run state =
   let rec pour_from x y path =
