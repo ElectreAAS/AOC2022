@@ -11,8 +11,8 @@ depends: [
   "dune" {>= "3.6"}
   "domainslib"
   "eio"
+  "eio_main"
   "mtime"
-  "mtime.clock.os"
   "alcotest" {with-test}
   "odoc" {with-doc}
 ]

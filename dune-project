@@ -20,6 +20,6 @@
  (depends
   domainslib
   eio
+  eio_main
   mtime
-  mtime.clock.os
   (alcotest :with-test)))

@@ -6,7 +6,6 @@
   domainslib
   eio
   mtime
-  mtime.clock.os
   utils
   day1
   day2
