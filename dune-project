@@ -18,9 +18,19 @@
  (synopsis "Advent of Code 2022")
  (description "Advent of Code 2022")
  (depends
-  domainslib
-  eio
-  eio_main
-  notty
-  mtime
-  (alcotest :with-test)))
+  (ocaml
+   (>= 5.0.0))
+  (domainslib
+   (>= 0.5.0))
+  (eio
+   (>= 0.8.1))
+  (eio_main
+   (>= 0.8.1))
+  (notty
+   (>= 0.2.3))
+  (mtime
+   (>= 2.0.0))
+  (alcotest
+   (and
+    (>= 1.0.0)
+    :with-test))))
