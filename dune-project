@@ -1,4 +1,4 @@
-(lang dune 3.6)
+(lang dune 3.7)
 
 (name aoc2022)
 
@@ -16,7 +16,6 @@
 (package
  (name aoc2022)
  (synopsis "Advent of Code 2022")
- (description "Advent of Code 2022")
  (depends
   (ocaml
    (>= 5.0.0))
