@@ -54,12 +54,11 @@ let rec compare_data left right =
 let divider_2 = List [ List [ Int 2 ] ]
 let divider_6 = List [ List [ Int 6 ] ]
 
-let day _ contents _ =
-  let buff = EBR.of_string contents in
+let day _ _ input_buffer =
   let lines =
-    EBR.seq
+    EBR.seq (* FIXME: use Eio better *)
       ~stop:(EBR.take_while (( = ) '\n') *> EBR.at_end_of_input)
-      parse_data buff
+      parse_data input_buffer
     |> List.of_seq
   in
   (* if display then List.iter pp lines; *)

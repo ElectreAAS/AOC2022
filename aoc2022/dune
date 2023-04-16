@@ -1,8 +1,8 @@
 (executable
  (name main)
  (public_name aoc2022)
- (package aoc2022)
  (libraries
+  all
   domainslib
   eio
   mtime

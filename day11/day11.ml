@@ -21,7 +21,9 @@ let parse_op opchar operand old =
 
 let parse_test divis cons alt x = if x mod divis = 0 then cons else alt
 
-let parse contents =
+let parse input_buffer =
+  let contents = Eio.Buf_read.take_all input_buffer in
+  (* FIXME: use Eio better *)
   let ic = Scanf.Scanning.from_string contents in
   let rec loop monkeys ppcm =
     try
@@ -60,8 +62,8 @@ let round active monkeys ppcm =
       throw items)
     monkeys
 
-let day display contents _ =
-  let monkeys, ppcm = parse contents in
+let day display _ input_buffer =
+  let monkeys, ppcm = parse input_buffer in
   let len = Array.length monkeys in
   let active = Array.make len 0 in
   for i = 1 to 10_000 do

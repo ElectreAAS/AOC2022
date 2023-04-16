@@ -110,8 +110,9 @@ let run state =
   in
   loop 1 []
 
-let day display contents _ =
-  let lines = String.trim contents |> String.split_on_char '\n' in
+let day display _ input_buffer =
+  let lines = Eio.Buf_read.lines input_buffer |> List.of_seq in
+  (* FIXME: use Eio better *)
   let max_y, paths = List.fold_left_map parse min_int lines in
   let state = init_state max_y paths in
   let res = run state |> string_of_int in

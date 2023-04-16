@@ -99,10 +99,11 @@ let rec step state move n =
     let new_state = post_head state 0 in
     step new_state move (n - 1)
 
-let day display contents _ =
-  let lines = String.trim contents |> String.split_on_char '\n' in
+let day display _ input_buffer =
+  let lines = Eio.Buf_read.lines input_buffer in
+  (* FIXME: use Eio better *)
   let final_state =
-    List.fold_left
+    Seq.fold_left
       (fun state line ->
         let move, n = parse_move line in
         step state move n)

@@ -132,8 +132,10 @@ let find_smallest_big mark node =
   in
   loop max_int node
 
-let day display contents _ =
-  let cmds = String.split_on_char '$' contents |> List.tl in
+let day display _ input_buffer =
+  let cmds =
+    input_buffer |> Eio.Buf_read.take_all |> String.split_on_char '$' |> List.tl
+  in
   let state = { pwd = ""; tree = Directory (0, "/", [||]) } in
   let final_state = List.fold_left parse_tree state cmds in
   if display then pp final_state.tree;

@@ -1,9 +1,12 @@
+module EBR = Eio.Buf_read
+open EBR.Syntax
+
 type cell = { content : char; shortest_path_cost : int option }
 
 let code c = match c with 'S' -> 0 | 'E' -> 25 | c -> Char.code c - 97
 
-let parse contents =
-  let lines = String.trim contents |> String.split_on_char '\n' in
+let parse =
+  let+ lines = EBR.map List.of_seq EBR.lines in
   let width = String.length @@ List.hd lines in
   let height = List.length lines in
   let hill =
@@ -92,7 +95,7 @@ let a_star hill start =
   in
   loop ()
 
-let day display contents _ =
-  let hill, start = parse contents in
+let day display _ input_buffer =
+  let hill, start = parse input_buffer in
   if display then pp hill;
   a_star hill start |> string_of_int

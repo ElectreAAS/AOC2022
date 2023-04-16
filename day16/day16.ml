@@ -1,3 +1,6 @@
+module EBR = Eio.Buf_read
+open EBR.Syntax
+
 let time_limit = 26
 
 type bitmap = BMP of int
@@ -43,9 +46,7 @@ let print_to_dot graph name =
     (fun (ID name) (flow, neighbours) ->
       Printf.fprintf oc "    %d [label=\"%d %d\" style=filled color=%s];\n" name
         name flow
-        (if name = 0 then "gold"
-        else if flow = 0 then "grey"
-        else "forestgreen");
+        (if name = 0 then "gold" else if flow = 0 then "grey" else "forestgreen");
       AdjSet.iter
         (fun (w, ID dst) ->
           Printf.fprintf oc "    %d -- %d [label=%d];\n" name dst w)
@@ -54,8 +55,8 @@ let print_to_dot graph name =
   Printf.fprintf oc "}";
   close_out oc
 
-let parse contents =
-  let lines = String.trim contents |> String.split_on_char '\n' in
+let parse =
+  let+ lines = EBR.map List.of_seq EBR.lines in
   let substs = Hashtbl.create (List.length lines) in
   Hashtbl.add substs "AA" (ID 0);
   let cursor = ref 1 in
@@ -275,8 +276,8 @@ let brute graph init =
   in
   aux ()
 
-let day display contents _pool =
-  let graph = contents |> parse |> prune in
+let day display _ input_buffer =
+  let graph = parse input_buffer |> prune in
   if display then (
     print_to_dot graph "pruned";
     Printf.printf "\nGraph was printed in a graph_pruned.dot file");

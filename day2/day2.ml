@@ -1,20 +1,29 @@
+module EBR = Eio.Buf_read
+open EBR.Syntax
+
 type move = Rock | Paper | Scissors
 
-let move_of_string = function
-  | "A" -> Rock
-  | "B" -> Paper
-  | "C" -> Scissors
-  | s -> invalid_arg s
+let parse_move =
+  EBR.map
+    (function
+      | 'A' -> Rock
+      | 'B' -> Paper
+      | 'C' -> Scissors
+      | s -> invalid_arg (Char.escaped s))
+    EBR.any_char
 
 type outcome = Lose | Draw | Win
 
-let outcome_of_string = function
-  | "X" -> Lose
-  | "Y" -> Draw
-  | "Z" -> Win
-  | s -> invalid_arg s
+let parse_outcome =
+  EBR.map
+    (function
+      | 'X' -> Lose
+      | 'Y' -> Draw
+      | 'Z' -> Win
+      | s -> invalid_arg (Char.escaped s))
+    EBR.any_char
 
-let points_of_combo (left, right) =
+let points_of_combo left right =
   let outcome = match right with Lose -> 0 | Draw -> 3 | Win -> 6 in
   let shape =
     match (left, right) with
@@ -24,17 +33,18 @@ let points_of_combo (left, right) =
   in
   shape + outcome
 
-let parse_combo = function
-  | [ x; y ] -> (move_of_string x, outcome_of_string y)
-  | l -> invalid_arg (String.concat " " l)
+let parse_combo =
+  let+ move = parse_move and+ outcome = EBR.char ' ' *> parse_outcome in
+  points_of_combo move outcome
 
-let day _ contents _ =
-  let lines = String.trim contents |> String.split_on_char '\n' in
-  let points =
-    List.fold_left
-      (fun sum line ->
-        line |> String.split_on_char ' ' |> parse_combo |> points_of_combo
-        |> ( + ) sum)
-      0 lines
+let parse_fold =
+  let rec loop sum =
+    let* b = EBR.at_end_of_input in
+    if b then EBR.return sum
+    else
+      let* points = parse_combo <* EBR.char '\n' in
+      loop (sum + points)
   in
-  string_of_int points
+  loop 0
+
+let day _ _ = EBR.map string_of_int parse_fold

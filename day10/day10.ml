@@ -24,10 +24,11 @@ let rec steps state instr =
       | NoOp -> { state with cycle; crt }
       | Add n -> { state with cycle; hanging = Some n; crt })
 
-let day _ contents _ =
-  let lines = String.trim contents |> String.split_on_char '\n' in
+let day _ _ input_buffer =
+  let lines = Eio.Buf_read.lines input_buffer in
+  (* FIXME: use Eio better *)
   let final_state =
-    List.fold_left
+    Seq.fold_left
       (fun state line -> steps state (parse line))
       { register = 1; cycle = 1; hanging = None; crt = "\n" }
       lines

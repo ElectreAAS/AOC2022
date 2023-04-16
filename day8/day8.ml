@@ -1,4 +1,9 @@
-let parse contents =
+module EBR = Eio.Buf_read
+open EBR.Syntax
+
+let parse =
+  let+ contents = EBR.take_all in
+  (* FIXME: use Eio better *)
   let len = String.index contents '\n' in
   Array.init len (fun y ->
       Array.init len (fun x -> contents.[x + ((len + 1) * y)]))
@@ -64,8 +69,8 @@ let scenic_score x y forest =
   in
   up 0 (y - 1) * down 0 (y + 1) * left 0 (x - 1) * right 0 (x + 1)
 
-let day display contents _ =
-  let forest = parse contents in
+let day display _ input_buffer =
+  let forest = parse input_buffer in
   if display then pp forest;
   let len = Array.length forest in
   let rec loop x y count =
