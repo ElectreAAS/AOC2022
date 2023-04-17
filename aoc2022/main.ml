@@ -43,5 +43,5 @@ let () =
         T.run pool (fun () ->
             Eio_main.run @@ fun env ->
             let fs = Eio.Stdenv.fs env in
-            dispatch fs n display ());
+            dispatch fs n display pool);
         T.teardown_pool pool

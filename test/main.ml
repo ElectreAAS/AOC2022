@@ -18,5 +18,5 @@ let () =
   T.run pool (fun () ->
       Eio_main.run @@ fun env ->
       let fs = Eio.Stdenv.fs env in
-      Alcotest.run "Everything" [ ("Test puzzle input", all fs ()) ]);
+      Alcotest.run "Everything" [ ("Test puzzle input", all fs pool) ]);
   T.teardown_pool pool

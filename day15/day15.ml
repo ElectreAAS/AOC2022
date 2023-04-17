@@ -85,7 +85,7 @@ let cant_be sensor target size =
 module T = Domainslib.Task
 module C = Domainslib.Chan
 
-let day display _ input_buffer =
+let day display pool input_buffer =
   let lines = Eio.Buf_read.lines input_buffer |> List.of_seq in
   (* FIXME: use Eio better *)
   let len, sensors =
@@ -94,7 +94,10 @@ let day display _ input_buffer =
   let size = if len < 20 then 20 else 4_000_000 in
   let chan = C.make_bounded 1 in
   (* FIXME: Utils.parallel_for is too heavy-weight, but T.parallel_for is garbage *)
-  Utils.parallel_for size (fun y ->
+  T.parallel_for
+    ~chunk_size:(size / T.get_num_domains pool)
+    ~start:0 ~finish:size
+    ~body:(fun y ->
       let interval =
         List.fold_left
           (fun i s ->
@@ -108,6 +111,7 @@ let day display _ input_buffer =
         (fun x ->
           if display then pp interval;
           C.send chan (x, y))
-        (single_opt res));
+        (single_opt res))
+    pool;
   let x, y = C.recv chan in
   (x * 4_000_000) + y |> string_of_int
