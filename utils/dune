@@ -1,7 +1,7 @@
 (library
  (name utils)
  (modules utils)
- (libraries eio_main mtime))
+ (libraries eio mtime.clock.os))
 
 (library
  (name extensions)
@@ -13,7 +13,7 @@
  (modules all)
  (libraries
   domainslib
-  eio_main
+  eio
   day0
   day1
   day2

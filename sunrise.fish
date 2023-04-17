@@ -7,7 +7,7 @@
 ########################################################################
 
 ## Find yesterday's date
-set yesterday (rg "nb_days = (\d+)" aoc2022/main.ml -Nor '$1')
+set yesterday (rg "day(\d+)\)\)" utils/dune -Nor '$1')
 set today (math $yesterday + 1)
 echo "Today's date is the $today"
 
@@ -18,23 +18,11 @@ end
 
 ## Updating all the files to reference the new day
 
-# aoc2022/main.ml
-echo "Updating aoc2022/main.ml"
-sed -i "s/\(nb_days = \)[0-9]\+/\1$today/" aoc2022/main.ml
-sed -i "s/\($yesterday.day;\)/\1\n    Day$today.day;/" aoc2022/main.ml
+# utils/all.ml
+sed -i "s/Day$yesterday);/&\n    (module Day$today);/ ; s/  ]/    \"$argv\";\n  ]/" utils/all.ml
 
-# aoc2022/dune
-echo "Updating aoc2022/dune"
-sed -i "s/\($yesterday\))/\1\n  day$today)/" aoc2022/dune
-
-# test/main.ml
-echo "Updating test/main.ml"
-sed -i "s/\($yesterday.day ]);\)/\1\n         (\"Day $today\", [ Test$today.day ]);/" test/main.ml
-
-# test/dune
-echo "Updating test/dune"
-sed -i "s/\($yesterday\)/\1\n  day$today/" test/dune
-
+# utils/dune
+sed -i "s/day$yesterday/&\n  day$today/" utils/dune
 
 ## Create the new files
 
@@ -47,20 +35,9 @@ end
 
 # Create placeholder ocaml file
 echo "Creating $dir_name/day$today.ml"
-echo "let day _display contents _pool =
-  let lines = String.trim contents |> String.split_on_char '\n' in
-  List.hd lines" >$dir_name/day$today.ml
-
-# Create test file
-echo "Creating test/test$today.ml"
-echo "let day pool =
-  let open Day$today in
-  Alcotest.test_case \"Test puzzle input\" `Quick @@ fun () ->
-  let contents = Utils.get_test $today in
-  let result = day false contents pool in
-  let expected = \"$argv\" in
-  Alcotest.(check string) \"puzzle input should be solved!\" expected result;
-  ()" >test/test$today.ml
+echo "let day _display _pool input_buffer =
+  let line = Eio.Buf_read.line input_buffer in
+  line" >$dir_name/day$today.ml
 
 # Create dune file
 echo "Creating $dir_name/dune"
@@ -91,5 +68,5 @@ if test ! -f $test_file
 end
 
 # Commit changes performed in this script
-git add .
-git commit -m "Sunrise script: added template for day $today"
+git add utils/all.ml utils/dune $dir_name
+git commit -m "Added template for day $today" --author="Sunrise Script <ambre+bot@tarides.com>"
