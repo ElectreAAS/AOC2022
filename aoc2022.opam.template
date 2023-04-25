@@ -1,0 +1,4 @@
+pin-depends: [
+    # Remove when domainslib/pull/90 is merged and released
+    [ "domainslib.dev" "git+https://github.com/ElectreAAS/domainslib.git#ed86b7cddbceb7946b2d96de8f4a13b3560468a5" ]
+]

@@ -1,3 +1,6 @@
+module EBR = Eio.Buf_read
+open EBR.Syntax
+
 type sensor = { x : int; y : int; bx : int; by : int }
 
 let parse line =
@@ -82,36 +85,38 @@ let cant_be sensor target size =
     let low = x - no_go_dist and high = x + no_go_dist in
     if low > size || high < 0 then None else Some (max 0 low, min size high)
 
-module T = Domainslib.Task
-module C = Domainslib.Chan
-
-let day display pool input_buffer =
-  let lines = Eio.Buf_read.lines input_buffer |> List.of_seq in
-  (* FIXME: use Eio better *)
-  let len, sensors =
-    List.fold_left_map (fun n line -> (n + 1, parse line)) 0 lines
+let parse_sensors =
+  let+ lines = EBR.lines in
+  let len = ref 0 in
+  let sensors =
+    Seq.map
+      (fun x ->
+        incr len;
+        parse x)
+      lines
   in
+  (!len, List.of_seq sensors)
+
+module T = Domainslib.Task
+
+let day display pool =
+  let+ len, sensors = parse_sensors in
   let size = if len < 20 then 20 else 4_000_000 in
-  let chan = C.make_bounded 1 in
-  (* FIXME: Utils.parallel_for is too heavy-weight, but T.parallel_for is garbage *)
-  T.parallel_for
-    ~chunk_size:(size / T.get_num_domains pool)
-    ~start:0 ~finish:size
-    ~body:(fun y ->
-      let interval =
-        List.fold_left
-          (fun i s ->
-            match cant_be s y size with
-            | None -> i
-            | Some (a, b) -> merge i (Mono (a, b)))
-          (Poly []) sensors
-      in
-      let res = difference (0, size) interval in
-      Option.iter
-        (fun x ->
-          if display then pp interval;
-          C.send chan (x, y))
-        (single_opt res))
-    pool;
-  let x, y = C.recv chan in
+  let search () =
+    T.parallel_find pool ~start:0 ~finish:size ~body:(fun y ->
+        let interval =
+          List.fold_left
+            (fun i s ->
+              match cant_be s y size with
+              | None -> i
+              | Some (a, b) -> merge i (Mono (a, b)))
+            (Poly []) sensors
+        in
+        difference (0, size) interval
+        |> single_opt
+        |> Option.map (fun x ->
+               if display then pp interval;
+               (x, y)))
+  in
+  let x, y = search |> T.run pool |> Option.get in
   (x * 4_000_000) + y |> string_of_int

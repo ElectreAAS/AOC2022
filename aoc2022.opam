@@ -9,7 +9,7 @@ bug-reports: "https://github.com/ElectreAAS/AOC2022/issues"
 depends: [
   "dune" {>= "3.7"}
   "ocaml" {>= "5.0.0"}
-  "domainslib" {>= "0.5.0"}
+  "domainslib" {dev}
   "eio" {>= "0.8.1"}
   "eio_main" {>= "0.8.1"}
   "notty" {>= "0.2.3"}
@@ -32,3 +32,7 @@ build: [
   ]
 ]
 dev-repo: "git+https://github.com/ElectreAAS/AOC2022.git"
+pin-depends: [
+    # Remove when domainslib/pull/90 is merged and released
+    [ "domainslib.dev" "git+https://github.com/ElectreAAS/domainslib.git#ed86b7cddbceb7946b2d96de8f4a13b3560468a5" ]
+]

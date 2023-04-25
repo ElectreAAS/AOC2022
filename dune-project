@@ -19,8 +19,7 @@
  (depends
   (ocaml
    (>= 5.0.0))
-  (domainslib
-   (>= 0.5.0))
+  (domainslib :dev)
   (eio
    (>= 0.8.1))
   (eio_main
