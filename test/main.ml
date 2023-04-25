@@ -14,9 +14,11 @@ let all fs pool =
     All.expected
 
 let () =
-  let pool = T.setup_pool ~name:"tester" ~num_domains:7 () in
-  T.run pool (fun () ->
-      Eio_main.run @@ fun env ->
-      let fs = Eio.Stdenv.fs env in
-      Alcotest.run "Everything" [ ("Test puzzle input", all fs pool) ]);
+  let pool =
+    T.setup_pool ~name:"tester"
+      ~num_domains:(Domain.recommended_domain_count () - 1)
+      ()
+  in
+  Eio_main.run (fun env ->
+      Alcotest.run "Everything" [ ("Test puzzle input", all env#fs pool) ]);
   T.teardown_pool pool

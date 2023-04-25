@@ -40,8 +40,5 @@ let () =
             ~num_domains:(Domain.recommended_domain_count () - 1)
             ()
         in
-        T.run pool (fun () ->
-            Eio_main.run @@ fun env ->
-            let fs = Eio.Stdenv.fs env in
-            dispatch fs n display pool);
+        Eio_main.run (fun env -> dispatch env#fs n display pool);
         T.teardown_pool pool
