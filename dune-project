@@ -17,17 +17,22 @@
  (name aoc2022)
  (synopsis "Advent of Code 2022")
  (depends
-  (ocaml
-   (>= 5.0.0))
   (domainslib :dev)
   (eio
    (>= 0.8.1))
   (eio_main
    (>= 0.8.1))
-  (notty
-   (>= 0.2.3))
   (mtime
    (>= 2.0.0))
+  (notty
+   (>= 0.2.3))
+  (ocaml
+   (>= 5.0.0))
+  (ocamlformat
+   (and
+    (= 0.25.1)
+    :with-test))
+  (ocaml-lsp-server :with-test)
   (alcotest
    (and
     (>= 1.0.0)
