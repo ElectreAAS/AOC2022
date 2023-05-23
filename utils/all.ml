@@ -23,6 +23,7 @@ let days : (module DAY) array =
     (module Day14);
     (module Day15);
     (module Day16);
+    (module Day17);
   |]
 
 let expected =
@@ -51,4 +52,5 @@ let expected =
     "93";
     "56000011";
     "1707";
+    "3068";
   ]
